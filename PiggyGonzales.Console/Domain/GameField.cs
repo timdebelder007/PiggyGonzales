@@ -8,4 +8,16 @@ namespace PiggyGonzales.Console.Domain;
 
 public class GameField
 {
+    public int X { get;  }
+    public int Y { get;  }
+    public bool Hidden { get;  }
+    public bool Bomb { get; }   
+
+    public GameField(int x, int y, bool hidden, bool bomb)
+    {
+        X = x;
+        Y = y;
+        Hidden = hidden;
+        Bomb = bomb;
+    }
 }
