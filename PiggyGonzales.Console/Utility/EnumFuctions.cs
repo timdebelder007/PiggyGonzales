@@ -19,5 +19,10 @@ namespace PiggyGonzales.Console.Utility
             } 
         }
 
+        public static T GetRandomValue()
+        {
+            return (T)Enum.GetValues(typeof(T)).GetValue(Random.Shared.Next(Count));
+        }
+
     }
 }
