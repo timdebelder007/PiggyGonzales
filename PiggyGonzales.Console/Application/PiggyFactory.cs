@@ -1,4 +1,5 @@
 ﻿using PiggyGonzales.Console.Domain;
+using PiggyGonzales.Console.Utility;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,18 +10,16 @@ namespace PiggyGonzales.Console.Application;
 
 public static class PiggyFactory
 {
-    private static readonly List<double> availableEnemyBudgets = new() { 1,2,5 };
+    public static readonly List<double> availableEnemyBudgets = new() { 1,2,5 };
 
     public static Piggy CreateMasterPiggy(double startBudget)
     {
-        throw new NotImplementedException();
+        return new Piggy(startBudget, EnumFuctions<ESize>.GetRandomValue());
     }
 
     public static Piggy CreateEnemyPiggy()
-    {
-        double budget = availableEnemyBudgets.ElementAt(Random.Shared.Next(availableEnemyBudgets.Count()));
-
-        throw new NotImplementedException();
+    {        
+        return new Piggy(availableEnemyBudgets.ElementAt(Random.Shared.Next(availableEnemyBudgets.Count())), EnumFuctions<ESize>.GetRandomValue());
     }
 
 }
