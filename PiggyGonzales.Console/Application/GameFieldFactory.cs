@@ -6,6 +6,6 @@ using System.Threading.Tasks;
 
 namespace PiggyGonzales.Console.Application;
 
-public class PiggyFactory
+public class GameFieldFactory
 {
 }

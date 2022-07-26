@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace PiggyGonzales.Console.Domain
+namespace PiggyGonzales.Console.Domain;
+
+public class GameField
 {
-    public class GameField
-    {
-    }
 }
