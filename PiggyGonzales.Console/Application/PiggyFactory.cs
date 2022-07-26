@@ -10,9 +10,9 @@ namespace PiggyGonzales.Console.Application;
 
 public static class PiggyFactory
 {
-    public static readonly List<double> availableEnemyBudgets = new() { 1,2,5 };
+    public static readonly List<int> availableEnemyBudgets = new() { 1,2,5 };
 
-    public static Piggy CreateMasterPiggy(double startBudget)
+    public static Piggy CreateMasterPiggy(int startBudget)
     {
         return new Piggy(startBudget, EnumFuctions<ESize>.GetRandomValue());
     }
