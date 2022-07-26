@@ -9,23 +9,23 @@ namespace PiggyGonzales.Console.Application;
 
 public static class GameFieldFactory
 {
-    public static GameField CreateClosedField()
+    public static GameField CreateClosedField(int x, int y)
     {
-        throw new NotImplementedException();
+        return new GameField(x, y, false, false, false);
     }
 
-    public static GameField CreateOpenField()
+    public static GameField CreateOpenField(int x, int y)
     {
-        throw new NotImplementedException();
+        return new GameField(x, y, false, false, true);
     }
 
-    public static GameField CreateMaskedField()
+    public static GameField CreateMaskedField(int x, int y)
     {
-        throw new NotImplementedException();
+        return new GameField(x, y, true, false, true);
     }
 
-    public static GameField CreateMaskedFieldWithBomb()
+    public static GameField CreateMaskedFieldWithBomb(int x, int y)
     {
-        throw new NotImplementedException();
+        return new GameField(x, y, true, true, true);
     }
 }
