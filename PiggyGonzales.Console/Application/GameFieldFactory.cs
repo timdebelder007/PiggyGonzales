@@ -19,12 +19,12 @@ public static class GameFieldFactory
         return new GameField(x, y, false, false, true);
     }
 
-    public static GameField CreateMaskedField(int x, int y)
+    public static GameField CreateHiddenField(int x, int y)
     {
         return new GameField(x, y, true, false, true);
     }
 
-    public static GameField CreateMaskedFieldWithBomb(int x, int y)
+    public static GameField CreateHiddenBombField(int x, int y)
     {
         return new GameField(x, y, true, true, true);
     }
