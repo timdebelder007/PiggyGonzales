@@ -9,8 +9,8 @@ namespace PiggyGonzales.Console.Domain;
 
 public class Piggy
 {
-    public double Budget { get; set; }
-    public ESize Size { get; set; }
+    public double Budget { get; }
+    public ESize Size { get; }
 
     public Piggy(double budget, ESize size)
     {
