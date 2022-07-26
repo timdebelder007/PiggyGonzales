@@ -14,6 +14,11 @@ namespace PiggyGonzales.Console.Application
 
         private readonly List<GameField> gameFields;
         private readonly List<Piggy> enemyPiggies;
+        private Piggy? masterPiggy;
+        private bool generated;
+
+        private int IntervalMoveMasterPiggy;
+        private int IntervalSpawnEnemyPiggy; 
 
         public GameFactory(int budgetMasterPiggy, int boardSize)
         {
@@ -22,8 +27,65 @@ namespace PiggyGonzales.Console.Application
 
             BudgetMasterPiggy = budgetMasterPiggy;
             BoardSize = boardSize;
+
+            this.IntervalMoveMasterPiggy = 2;
+            this.IntervalSpawnEnemyPiggy = 5;
+
             this.gameFields = new List<GameField>();
-            this.enemyPiggies = new List<Piggy>();
+            this.enemyPiggies = new List<Piggy>();            
+        }
+
+        public void GenerateGame()
+        {
+            if (generated) return;
+
+            decimal TotalFieldCount = (decimal)(BoardSize * BoardSize);
+
+            int closedFieldCount = (int)Math.Round(TotalFieldCount / 100 *10, 0, MidpointRounding.ToZero);
+            int HiddenFieldCount = (int)Math.Round(TotalFieldCount/100*10, 0, MidpointRounding.ToZero);
+            int BombFieldCount = (int)Math.Round((decimal)HiddenFieldCount / 100 * 50, 0, MidpointRounding.ToZero);
+            HiddenFieldCount -= BombFieldCount;            
+
+            while(gameFields.Where(gf => !gf.Open).Count() < closedFieldCount)
+            {
+                GameField newField = GameFieldFactory.CreateClosedField(Random.Shared.Next(1, BoardSize), Random.Shared.Next(1, BoardSize));
+                if (!gameFields.Where(gf => gf.X == newField.X || gf.Y == newField.Y).Any())
+                    gameFields.Add(newField);
+            }
+
+            while (gameFields.Where(gf => gf.Open && gf.Hidden && !gf.Bomb).Count() < HiddenFieldCount)
+            {
+                GameField newField = GameFieldFactory.CreateHiddenField(Random.Shared.Next(1, BoardSize), Random.Shared.Next(1, BoardSize));
+                if (!gameFields.Where(gf => gf.X == newField.X || gf.Y == newField.Y).Any())
+                    gameFields.Add(newField);
+            }
+
+            while (gameFields.Where(gf => gf.Open && gf.Hidden && gf.Bomb).Count() < BombFieldCount)
+            {
+                GameField newField = GameFieldFactory.CreateHiddenBombField(Random.Shared.Next(1, BoardSize), Random.Shared.Next(1, BoardSize));
+                if (!gameFields.Where(gf => gf.X == newField.X || gf.Y == newField.Y).Any())
+                    gameFields.Add(newField);
+            }
+
+            while (gameFields.Count() < TotalFieldCount)
+            {
+                GameField newField = GameFieldFactory.CreateOpenField(Random.Shared.Next(1, BoardSize), Random.Shared.Next(1, BoardSize));
+                if (!gameFields.Where(gf => gf.X == newField.X || gf.Y == newField.Y).Any())
+                    gameFields.Add(newField);
+            }           
+
+            generated = true;
+        }
+
+        public void Play()
+        {
+            GenerateGame();
+            masterPiggy = PiggyFactory.CreateMasterPiggy(BudgetMasterPiggy);
+        }
+
+        public void RePlay()
+        {
+
         }
     }
 }

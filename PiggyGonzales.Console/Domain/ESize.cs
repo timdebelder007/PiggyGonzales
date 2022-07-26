@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace PiggyGonzales.Console.Domain;
 
 public enum ESize
-{
+{    
     small = 1,
     medium = 2,
     large = 3,
