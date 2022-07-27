@@ -12,7 +12,8 @@ public class GameField
     public int Y { get;  }
     public bool Open { get; }
     public bool Hidden { get;  }
-    public bool Bomb { get; }   
+    public bool Bomb { get; }      
+    public Piggy? Piggy { get; set; }
 
     public GameField(int x, int y, bool hidden, bool bomb, bool open)
     {
