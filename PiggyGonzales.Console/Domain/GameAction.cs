@@ -8,15 +8,17 @@ namespace PiggyGonzales.Console.Domain
 {
     public class GameAction
     {
-        private readonly Piggy masterPiggy;
-        private readonly GameField gameField;
-        private readonly GameAction PreviousAction;       
+        public EGameActionType ActionType { get; }
+        public Piggy Piggy { get; }
+        public GameField GameField { get; }
+        public GameAction? PreviousAction { get; }
 
-        public GameAction(GameAction previousAction, Piggy masterPiggy, GameField gameField)
+        public GameAction(EGameActionType actionType, Piggy piggy, GameField gameField, GameAction? previousAction = null)
         {
             PreviousAction = previousAction;
-            this.masterPiggy = masterPiggy;
-            this.gameField = gameField;
+            Piggy = piggy;
+            GameField = gameField;
+            ActionType = ActionType;
         }        
     }
 }
