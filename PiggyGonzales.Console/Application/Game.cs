@@ -1,4 +1,5 @@
 ﻿using PiggyGonzales.Console.Domain;
+using PiggyGonzales.Console.Application.GameActions;
 using System.Timers;
 using System;
 using System.Collections.Generic;
@@ -8,29 +9,33 @@ using System.Threading.Tasks;
 
 namespace PiggyGonzales.Console.Application
 {
-    public class GameFactory
+    public class Game
     {
         public int BudgetMasterPiggy { get; }
         public int BoardSize { get; }
 
-        private readonly List<GameField> gameFields;
-        private readonly List<Piggy> enemyPiggies;
-        private Piggy? masterPiggy;
-        private GameAction? lastAction;
-        public int Lives { get; }
+        internal List<GameField> gameFields { get; }
+        internal List<Piggy> enemyPiggies { get; }
+        internal Piggy masterPiggy { get; set; }
+        internal GameAction? lastAction { get; private set; }
+        public int Lives { get; private set; }
+
+        private readonly GameActionFactory gameActionFactory;
 
         private int currentSecond;
+        private bool boardGenerated;
 
         private int IntervalMoveMasterPiggy;
         private int IntervalSpawnEnemyPiggy; 
 
-        public GameFactory(int budgetMasterPiggy, int boardSize, int lives = 3)
+        public Game(int budgetMasterPiggy, int boardSize, int lives = 3)
         {
             if (budgetMasterPiggy < 1 || budgetMasterPiggy > 10) throw new ArgumentOutOfRangeException(nameof(budgetMasterPiggy), $"Budget must be between 1 and 10 (given value {budgetMasterPiggy})");
             if (boardSize < 10 || boardSize > 20) throw new ArgumentOutOfRangeException(nameof(boardSize), $"Board size must be between 10 and 20 (given value {boardSize})");
 
             BudgetMasterPiggy = budgetMasterPiggy;
             BoardSize = boardSize;
+            masterPiggy = PiggyFactory.CreateMasterPiggy(budgetMasterPiggy);
 
             this.IntervalMoveMasterPiggy = 2;
             this.IntervalSpawnEnemyPiggy = 5;
@@ -39,10 +44,17 @@ namespace PiggyGonzales.Console.Application
             this.enemyPiggies = new List<Piggy>();
 
             this.Lives = lives;
+            this.boardGenerated = false;
+
+            this.gameActionFactory = new GameActionFactory();            
         }
 
-        private void GenerateGame()
-        {                       
+
+        //must be seperated
+        public void GenerateGame()
+        {
+            if (boardGenerated) return;
+
             decimal TotalFieldCount = (decimal)(BoardSize * BoardSize);
 
             int closedFieldCount = (int)Math.Round(TotalFieldCount / 100 *10, 0, MidpointRounding.ToZero);
@@ -81,103 +93,74 @@ namespace PiggyGonzales.Console.Application
                             gameFields.Add(GameFieldFactory.CreateOpenField(x, y));
                     }
                 }
-            }           
-        }
+            }
 
-        System.Timers.Timer GameTimer = new System.Timers.Timer(1000);
+            boardGenerated = true;
+        }
+        
 
         public void Play()
         {
             GenerateGame();
-            masterPiggy = PiggyFactory.CreateMasterPiggy(BudgetMasterPiggy);
+
             currentSecond = 0;
+
+            var query = this.gameFields.Where(gf => gf.Open && !gf.Hidden && gf.Piggy == null);
+            try
+            {
+                while (Lives > 0 && query.Any())
+                {
+                    try
+                    {
+                        //spawnMasterPiggy
+                        if (currentSecond == 0)
+                        {
+                            lastAction = gameActionFactory.CreateSpawnMasterPiggyGameAction(this).Execute();
+                        }
+
+                        currentSecond++;
+
+                        //spawn new enemy
+                        if (currentSecond % IntervalSpawnEnemyPiggy == 0)
+                        {
+                            lastAction = gameActionFactory.CreateSpawnEnemyPiggyGameAction(this).Execute();
+                        }
+
+                        if (currentSecond % IntervalMoveMasterPiggy == 0)
+                        {
+                            lastAction = gameActionFactory.CreateMoveMasterPiggyGameAction(this).Execute();
+                        }
+                    }
+                    catch (PiggyDiedException)
+                    {
+                        Lives -= 1;
+                        if (Lives > 0)
+                            lastAction = gameActionFactory.CreateSpawnMasterPiggyGameAction(this).Execute();
+
+                        System.Console.WriteLine($"died remaining lives: {Lives}");
+                    }
+                    catch (Exception)
+                    {
+                        throw;
+                    }
+
+
+                    Thread.Sleep(1000);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine($"Game ended because: {ex.Message}");
+            }
+            
            
-            GameTimer.Elapsed += (sender, e) => Handler();
-            GameTimer.Start();
             System.Console.ReadLine();
-            
-            
+
         }
 
         public void RePlay()
         {
-
-        }
-
-        void Handler()
-        {
-            try
-            {
-                //spawnMasterPiggy
-                if (currentSecond == 0)
-                {                    
-                    GameField gameFieldToSpawn = GetRandomFreeSpot();
-                    lastAction = new GameAction(EGameActionType.SpawnEnemyPiggy, masterPiggy, gameFieldToSpawn, lastAction);
-                    System.Console.WriteLine($"master piggy spawned: {masterPiggy.Size} & {masterPiggy.Budget}");
-                }
-
-                currentSecond++;
-
-                if (currentSecond % IntervalSpawnEnemyPiggy == 0)
-                {
-                    Piggy newEnemyPiggy = PiggyFactory.CreateEnemyPiggy();
-                    enemyPiggies.Add(newEnemyPiggy);
-                    GameField gameFieldToSpawn = GetRandomFreeSpot();
-                    lastAction = new GameAction(EGameActionType.SpawnEnemyPiggy, newEnemyPiggy, gameFieldToSpawn, lastAction);
-                    System.Console.WriteLine($"enemy piggy spawned: {newEnemyPiggy.Size} & {newEnemyPiggy.Budget}");                    
-                }
-
-                if (currentSecond % IntervalMoveMasterPiggy == 0)
-                {
-
-                }
-            }
-            catch (Exception)
-            {
-                GameTimer.Stop();                
-            }         
-        }
-
-
-        private void MoveMasterPiggy(GameAction action)
-        {
-
-        }
-
-        private void SpawnEnemyPigy(GameAction action)
-        {     
-            
-        }
-
-        private GameField GetRandomFreeSpot()
-        {
-            List<GameField> freeSpots = gameFields.Where(gf => gf.Open && gf.Piggy == null).ToList();
-
-            if (freeSpots.Count == 0) throw new ArgumentOutOfRangeException(nameof(freeSpots));
-
-            return freeSpots.ElementAt(Random.Shared.Next(freeSpots.Count));
-        }
-
-        private List<GameField> GetCloseSpots(GameField gf)
-        {
-            List<GameField> result = new List<GameField>();
-
-            var LeftField = gameFields.FirstOrDefault(left => left.X == gf.X && left.Y == gf.Y - 1 && left.Open);
-            var RightField = gameFields.FirstOrDefault(right => right.X == gf.X && right.Y == gf.Y + 1 && right.Open);
-            var UpField = gameFields.FirstOrDefault(up => up.X == gf.X - 1 && up.Y == gf.Y && up.Open);
-            var BottomField = gameFields.FirstOrDefault(bottom => bottom.X == gf.X + 1 && bottom.Y == gf.Y && bottom.Open);
-
-            if (LeftField != null) result.Add(LeftField);
-            if (RightField != null) result.Add(RightField);
-            if (UpField != null) result.Add(UpField);
-            if (BottomField != null) result.Add(BottomField);
-
-            return result;
-
-
-
-
-
-        }
+            lastAction?.ExecuteRecursive();
+        }        
     }
 }

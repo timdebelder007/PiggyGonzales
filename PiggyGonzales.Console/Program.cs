@@ -3,6 +3,6 @@ using PiggyGonzales.Console.Application;
 
 Console.WriteLine("Hello, World!");
 
-GameFactory newGame = new GameFactory(5, 10);
+Game newGame = new Game(5, 10);
 
 newGame.Play();
